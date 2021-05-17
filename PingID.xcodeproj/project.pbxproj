@@ -16,6 +16,9 @@
 		239FDF14264957F10012F0D6 /* PingIDTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDF13264957F10012F0D6 /* PingIDTests.swift */; };
 		239FDF1F264957F10012F0D6 /* PingIDUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDF1E264957F10012F0D6 /* PingIDUITests.swift */; };
 		239FDF3226495AB40012F0D6 /* EncryptionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDF3126495AB40012F0D6 /* EncryptionVC.swift */; };
+		239FDF46264FB3C00012F0D6 /* DecryptionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDF45264FB3C00012F0D6 /* DecryptionVC.swift */; };
+		239FDF4E265114F50012F0D6 /* extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDF4D265114F50012F0D6 /* extensions.swift */; };
+		239FDF5426526E390012F0D6 /* secure.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 239FDF5326526E390012F0D6 /* secure.jpg */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -51,6 +54,9 @@
 		239FDF1E264957F10012F0D6 /* PingIDUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PingIDUITests.swift; sourceTree = "<group>"; };
 		239FDF20264957F10012F0D6 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		239FDF3126495AB40012F0D6 /* EncryptionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncryptionVC.swift; sourceTree = "<group>"; };
+		239FDF45264FB3C00012F0D6 /* DecryptionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecryptionVC.swift; sourceTree = "<group>"; };
+		239FDF4D265114F50012F0D6 /* extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions.swift; sourceTree = "<group>"; };
+		239FDF5326526E390012F0D6 /* secure.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = secure.jpg; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +107,7 @@
 		239FDEFB264957EF0012F0D6 /* PingID */ = {
 			isa = PBXGroup;
 			children = (
+				239FDF5226526E260012F0D6 /* Resources */,
 				239FDF3026495A990012F0D6 /* ViewControllers */,
 				239FDEFC264957EF0012F0D6 /* AppDelegate.swift */,
 				239FDEFE264957EF0012F0D6 /* SceneDelegate.swift */,
@@ -135,8 +142,18 @@
 			isa = PBXGroup;
 			children = (
 				239FDF3126495AB40012F0D6 /* EncryptionVC.swift */,
+				239FDF45264FB3C00012F0D6 /* DecryptionVC.swift */,
+				239FDF4D265114F50012F0D6 /* extensions.swift */,
 			);
 			path = ViewControllers;
+			sourceTree = "<group>";
+		};
+		239FDF5226526E260012F0D6 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				239FDF5326526E390012F0D6 /* secure.jpg */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -242,6 +259,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				239FDF5426526E390012F0D6 /* secure.jpg in Resources */,
 				239FDF09264957F10012F0D6 /* LaunchScreen.storyboard in Resources */,
 				239FDF06264957F10012F0D6 /* Assets.xcassets in Resources */,
 				239FDF04264957EF0012F0D6 /* Main.storyboard in Resources */,
@@ -269,10 +287,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				239FDF46264FB3C00012F0D6 /* DecryptionVC.swift in Sources */,
 				239FDF01264957EF0012F0D6 /* ViewController.swift in Sources */,
 				239FDF3226495AB40012F0D6 /* EncryptionVC.swift in Sources */,
 				239FDEFD264957EF0012F0D6 /* AppDelegate.swift in Sources */,
 				239FDEFF264957EF0012F0D6 /* SceneDelegate.swift in Sources */,
+				239FDF4E265114F50012F0D6 /* extensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -378,7 +398,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -433,7 +453,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
