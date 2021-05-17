@@ -85,10 +85,10 @@ class EncryptionVC: UIViewController {
         } else {
             print("Please enter a message")
         }
-        updateLabel(actions: updateArray)
+        updateActionsLabel()
     }
     
-    func updateLabel(actions:[String]) {
+    func updateActionsLabel() {
         _ = Timer.scheduledTimer(timeInterval: 0.3, target: self, selector: #selector(update(_:)), userInfo: nil, repeats: true)
     }
     

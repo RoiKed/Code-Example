@@ -128,11 +128,13 @@ extension EncryptionVC: keychainHandler {
     }
     
     func deleteFromKeychain(query: CFDictionary) throws {
-        let status = SecItemDelete(query as CFDictionary)
-        guard status == errSecSuccess || status == errSecItemNotFound else {
-            throw  cryptoError.itemNotFoundInKeychain
+        if isExistInKeychain(query) {
+            let status = SecItemDelete(query as CFDictionary)
+            guard status == errSecSuccess || status == errSecItemNotFound else {
+                throw  cryptoError.itemNotFoundInKeychain
+            }
+            updateArray.append(" Key Deleted from Keychain")
         }
-        updateArray.append(" Key Deleted from Keychain")
     }
     
     func getKey(for query: CFDictionary) -> SecKey? {
@@ -141,7 +143,7 @@ extension EncryptionVC: keychainHandler {
         if status == errSecSuccess, let item = item {
             updateArray.append(" Key taken from Keychain")
             return (item as! SecKey)
-        }else {
+        } else {
             return nil
         }
     }
@@ -169,7 +171,9 @@ extension DecryptionVC {
                         
                     } else {
                         // Failed to authenticate
-                        self?.field.text = "Local Authentication failed"
+                        self?.updateArray.append("Local Authentication failed")
+                        self?.deleteKeys()
+                        self?.updateActionsLabel()
                         guard let error = evaluateError else {
                             return
                         }

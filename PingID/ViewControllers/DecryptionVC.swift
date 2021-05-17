@@ -28,11 +28,24 @@ class DecryptionVC: UIViewController {
         } else {
             handleMessage()
         }
-        updateLabel(actions: updateArray)
     }
     
-    func updateLabel(actions:[String]) {
-        _ = Timer.scheduledTimer(timeInterval: 0.4, target: self, selector: #selector(update(_:)), userInfo: nil, repeats: true)
+    func deleteKeys() {
+        if let delegate = delegate {
+            let actions = [Query.encrypt.rawValue,Query.sign.rawValue]
+            for action in actions {
+                do {
+                    let query = getQuery(for: action)
+                    try delegate.deleteFromKeychain(query: query)
+                } catch {
+                    updateArray.append("failed to delete key from Keychain")
+                }
+            }
+        }
+    }
+    
+    func updateActionsLabel() {
+        _ = Timer.scheduledTimer(timeInterval: 0.6, target: self, selector: #selector(update(_:)), userInfo: nil, repeats: true)
     }
     
     @objc func update(_ timer: Timer) {
@@ -47,8 +60,10 @@ class DecryptionVC: UIViewController {
         do {
             let didHandleMsg = try didHandleMessge()
             updateBackgroundImage(with: didHandleMsg)
+            deleteKeys()
+            updateActionsLabel()
         } catch {
-            print("Decryption Faild")
+            updateArray.append("Decryption Faild")
         }
     }
     
@@ -89,11 +104,9 @@ class DecryptionVC: UIViewController {
                             }
                         } catch {
                             updateArray.append("Decryption Failed")
-                            print("Decryption Failed")
                         }
                     }
                 } catch {
-                    print("signature verification Failed")
                     updateArray.append("signature verification Failed")
                 }
             }
