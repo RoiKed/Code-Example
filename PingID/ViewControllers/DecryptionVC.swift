@@ -7,28 +7,58 @@
 
 import Foundation
 import UIKit
-
-protocol keychainHandler {
-    func deleteFromKeychain(key: SecKey) throws
-    func storeAndUpdateToKeychain(using key: SecKey,_ tag: String)
-    func isExistInKeychain(_ query: CFDictionary) -> Bool
-    func getKey(for query: CFDictionary) -> SecKey?
-}
+import LocalAuthentication
 
 class DecryptionVC: UIViewController {
     
     var content: UNNotificationContent?
     var delegate: keychainHandler?
-    var sig: Data?
-    var encryptedmsg: Data?
+    var shouldUseBiometrics: Bool?
+    var updateArray = [String]()
+    
+    @IBOutlet weak var field: UILabel!
+    @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var updateLabel: UILabel!
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        //let presentingVC = self.presentingViewController
+        updateBackgroundImage(with: false)
+        if shouldUseBiometrics == true {
+            self.authenticationWithTouchID()
+        } else {
+            handleMessage()
+        }
+        updateLabel(actions: updateArray)
+    }
+    
+    func updateLabel(actions:[String]) {
+        _ = Timer.scheduledTimer(timeInterval: 0.4, target: self, selector: #selector(update(_:)), userInfo: nil, repeats: true)
+    }
+    
+    @objc func update(_ timer: Timer) {
+        if updateArray.count > 0 {
+            updateLabel.text = updateArray.remove(at: 0)
+        } else {
+            timer.invalidate()
+        }
+    }
+    
+    func handleMessage() {
         do {
-            try getMsg()
+            let didHandleMsg = try didHandleMessge()
+            updateBackgroundImage(with: didHandleMsg)
         } catch {
-            
+            print("Decryption Faild")
+        }
+    }
+    
+    private func updateBackgroundImage(with success: Bool) {
+        let imageName = success ? "open.jpg": "secure.jpg"
+        if let image = UIImage(named: imageName) {
+            self.imageView.contentMode = .scaleAspectFill
+            self.imageView.image = image
+            self.view.backgroundColor = UIColor(patternImage: image)
+            self.view.contentMode = .center
         }
     }
     
@@ -41,33 +71,36 @@ class DecryptionVC: UIViewController {
         return query
     }
     
-    func getMsg() throws {
+    func didHandleMessge() throws -> Bool {
+        var retVal = false
         if let content = content {
-            let title = content.title
             let messageString = content.body
-            let signatureString = content.subtitle
-            let signature = Data(signatureString.utf8) as CFData
-            //print("signature is \(signature)")
-            let encryptedMessage = Data(messageString.utf8) as CFData
-            //print("encryptedMessage is \(encryptedMessage)")
-            do {
-                print("messageString is \(messageString)")
-                let testString = String(decoding: self.encryptedmsg!, as: UTF8.self)
-                print("test string is   \(testString)")
-                if try isSignatureVerified(signature, encryptedMessage) {
-                    do {
-                        if let decryptedMessage = try decrypt(encryptedMessage as CFData) {
-                            print(decryptedMessage)
+            let signedString = content.subtitle
+            if let signedData = signedString.toData(),
+               let encryptedMessage = messageString.toData() {
+                do {
+                    if try isSignatureVerified(signedData as CFData, encryptedMessage as CFData) {
+                        do {
+                            updateArray.append("Signature Verified")
+                            if let decryptedMessage = try decrypt(encryptedMessage as CFData) {
+                                updateArray.append("message decrypted")
+                                field.text = decryptedMessage
+                                retVal = true
+                            }
+                        } catch {
+                            updateArray.append("Decryption Failed")
+                            print("Decryption Failed")
                         }
-                    } catch {
-                        print("Decryption Failed")
                     }
+                } catch {
+                    print("signature verification Failed")
+                    updateArray.append("signature verification Failed")
                 }
-            } catch {
-                print("signature verification Failed")
             }
         }
+        return retVal
     }
+    
     private func decrypt(_ data:CFData) throws -> String? {
         if let delegate = delegate {
             let algorithm: SecKeyAlgorithm = .rsaEncryptionPKCS1
@@ -101,16 +134,11 @@ class DecryptionVC: UIViewController {
                     else {
                         throw error!.takeRetainedValue() as Error
                     }
-                    if error == nil {
-                        retVal = true
-                    }
-                    
+                    retVal = (error == nil)
                 }
             }
         }
         return retVal
     }
 }
-
-
 

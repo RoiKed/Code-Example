@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import LocalAuthentication
 
 enum cryptoError: Error {
     case signError
@@ -20,6 +21,13 @@ enum cryptoError: Error {
 enum Query: String {
     case sign = "Sign"
     case encrypt = "RSA-Encryption"
+}
+
+protocol keychainHandler {
+    func deleteFromKeychain(query: CFDictionary) throws
+    func storeAndUpdateToKeychain(using key: SecKey,_ tag: String)
+    func isExistInKeychain(_ query: CFDictionary) -> Bool
+    func getKey(for query: CFDictionary) -> SecKey?
 }
 
 extension EncryptionVC: UITextFieldDelegate {
@@ -55,9 +63,11 @@ extension EncryptionVC {
     
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 15, repeats: false)
         let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        UNUserNotificationCenter.current().add(request) { (error) in
+        UNUserNotificationCenter.current().add(request) { [weak self] (error) in
             if let error = error {
               print("error adding notification request - \(error)")
+            } else {
+                self?.updateArray.append("Timer created for 15 sec")
             }
         }
     }
@@ -68,10 +78,10 @@ extension EncryptionVC {
     }
     
     @objc func appMovedToBackground() {
-        if let signatureForMsg = signatureForMsg, let encryptedDataForMsg = encryptedDataForMsg {
-            createNotification(with: signatureForMsg, encryptedMessage: encryptedDataForMsg)
+        if let signedString = signedString, let encryptedDataForMsg = encryptedDataForMsg {
+            createNotification(with: signedString, encryptedMessage: encryptedDataForMsg)
 
-            self.signatureForMsg = nil
+            self.signedString = nil
             self.encryptedDataForMsg = nil
         }
     }
@@ -83,8 +93,7 @@ extension EncryptionVC: UNUserNotificationCenterDelegate {
         if let navigationController = self.navigationController {
             decryptionViewController.content = content
             decryptionViewController.delegate = self
-            decryptionViewController.sig = self.sig
-            decryptionViewController.encryptedmsg = self.encryptedmsg
+            decryptionViewController.shouldUseBiometrics = switchButton.isOn
             navigationController.pushViewController(decryptionViewController, animated: true)
         }
     }
@@ -104,34 +113,33 @@ extension EncryptionVC: keychainHandler {
                                        kSecAttrApplicationTag as String: tagData,
                                        kSecValueRef as String: key] as CFDictionary
         let status: OSStatus
-        var result: String
         if isExistInKeychain(query) {
             let attributesToUpdate = [kSecValueRef as String: key] as CFDictionary
             status = SecItemUpdate(query, attributesToUpdate)
-            result = "Key Updated"
+            updateArray.append(" Key was Updated in Keychain")
         } else {
             status = SecItemAdd(query, nil)
-            result = "Key Added"
+            updateArray.append(" Key added to Keychain ")
         }
         guard status == errSecSuccess else {
-            print("Error adding key to KeyChain")
+            updateArray.append(" Error adding key to KeyChain ")
             return
         }
-        print(result)
     }
     
-    func deleteFromKeychain(key: SecKey) throws {
-        guard let query = key as? [String : Any] else { return }
+    func deleteFromKeychain(query: CFDictionary) throws {
         let status = SecItemDelete(query as CFDictionary)
         guard status == errSecSuccess || status == errSecItemNotFound else {
             throw  cryptoError.itemNotFoundInKeychain
         }
+        updateArray.append(" Key Deleted from Keychain")
     }
     
     func getKey(for query: CFDictionary) -> SecKey? {
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query, &item)
         if status == errSecSuccess, let item = item {
+            updateArray.append(" Key taken from Keychain")
             return (item as! SecKey)
         }else {
             return nil
@@ -141,5 +149,56 @@ extension EncryptionVC: keychainHandler {
     func isExistInKeychain(_ query: CFDictionary) -> Bool {
         let status = SecItemCopyMatching(query, nil)
         return status == errSecSuccess
+    }
+}
+
+extension DecryptionVC {
+    
+    func authenticationWithTouchID() {
+        let localAuthenticationContext = LAContext()
+        localAuthenticationContext.localizedFallbackTitle = "Please use your Passcode"
+
+        var authorizationError: NSError?
+        let reason = "Authentication required to access the secure data"
+        
+        if localAuthenticationContext.canEvaluatePolicy(.deviceOwnerAuthentication, error: &authorizationError) {
+            localAuthenticationContext.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason) { [weak self] success, evaluateError in
+                DispatchQueue.main.async {
+                    if success {
+                        self?.handleMessage()
+                        
+                    } else {
+                        // Failed to authenticate
+                        self?.field.text = "Local Authentication failed"
+                        guard let error = evaluateError else {
+                            return
+                        }
+                        print(error)
+                    
+                    }
+                }
+            }
+        } else {
+            
+            guard let error = authorizationError else {
+                return
+            }
+            print(error)
+        }
+    }
+}
+
+extension Data
+{
+    func toString() -> String
+    {
+        return self.base64EncodedString(options: [])
+    }
+}
+
+extension String
+{
+    func toData() -> Data? {
+        return Data(base64Encoded: self, options: [])
     }
 }

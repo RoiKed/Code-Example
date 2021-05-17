@@ -14,12 +14,13 @@ class EncryptionVC: UIViewController {
         
     @IBOutlet weak var field: UITextField!
     @IBOutlet weak var imageView: UIImageView!
+    @IBOutlet weak var updateLabel: UILabel!
+    @IBOutlet weak var switchButton: UISwitch!
     
     var userNotificationCenter: UNUserNotificationCenter = UNUserNotificationCenter.current()
-    var signatureForMsg: String?
+    var signedString: String?
     var encryptedDataForMsg: String?
-    var sig:Data?
-    var encryptedmsg:Data?
+    var updateArray = [String]()
     
     private lazy var mainStoryboard: UIStoryboard = {
         let mainStoryboard = UIStoryboard(name: "Main", bundle:nil)
@@ -39,18 +40,21 @@ class EncryptionVC: UIViewController {
     private func setupVC() {
         field.returnKeyType = .done
         field.delegate = self
-        if let image = UIImage(named: "secure.jpg") {
-            //self.imageView = UIImageView(frame: CGRectZero)
-            self.imageView.contentMode = .scaleAspectFill
-            self.imageView.image = image
-            self.view.backgroundColor = UIColor(patternImage: image)
-            self.view.contentMode = .center
-        }
+        setBackgroundImage()
         let gesture = UITapGestureRecognizer.init(target: self, action: #selector(removeKeyboard))
         self.view.addGestureRecognizer(gesture)
         userNotificationCenter.delegate = self
         self.requestNotificationAuthorization()
         self.addObserverForAppInBackground()
+    }
+    
+    private func setBackgroundImage() {
+        if let image = UIImage(named: "secure.jpg") {
+            self.imageView.contentMode = .scaleAspectFill
+            self.imageView.image = image
+            self.view.backgroundColor = UIColor(patternImage: image)
+            self.view.contentMode = .center
+        }
     }
     
     @objc func removeKeyboard() {
@@ -62,32 +66,37 @@ class EncryptionVC: UIViewController {
         if let text = field.text, !text.isEmpty {
             do {
                 let encryptedData = try encrypt(text)
+                updateArray.append("String encrypted")
                 if let encryptedData = encryptedData, let keyPair = getKeyPair(for: Query.sign.rawValue) {
                     do {
-                        if let signature = try sign(encryptedData: encryptedData, privateKey: keyPair.privateKey) {
-                            let signatureString = String(decoding: signature, as: UTF8.self)
-                            let backToSignature = Data(signatureString.utf8)
-                            print(backToSignature == signature)
-                            
-                            let backToSignatureString = String(decoding: backToSignature, as: UTF8.self)
-                            print(signatureString == backToSignatureString)
-                            self.sig = signature
-                            self.encryptedmsg = encryptedData
-                            signatureForMsg = String(decoding: signature, as: UTF8.self)
-                            print(signatureForMsg! == signatureString)
-                            encryptedDataForMsg = String(decoding: encryptedData, as: UTF8.self)
-                            
+                        if  let signedData = try sign(encryptedData: encryptedData, privateKey: keyPair.privateKey) {
+                            updateArray.append("String signed")
+                            signedString = signedData.toString()
+                            encryptedDataForMsg = encryptedData.toString()
                             clearText() // clear the text only if it was already encrypted
                         }
                     } catch {
-                        print("Signing Error")
+                        updateArray.append("Signing Error")
                     }
                 }
             } catch {
-               print("Encryption Error")
+                updateArray.append("Encryption Error")
             }
         } else {
             print("Please enter a message")
+        }
+        updateLabel(actions: updateArray)
+    }
+    
+    func updateLabel(actions:[String]) {
+        _ = Timer.scheduledTimer(timeInterval: 0.3, target: self, selector: #selector(update(_:)), userInfo: nil, repeats: true)
+    }
+    
+    @objc func update(_ timer: Timer) {
+        if updateArray.count > 0 {
+            updateLabel.text = updateArray.remove(at: 0)
+        } else {
+            timer.invalidate()
         }
     }
     
@@ -131,24 +140,12 @@ class EncryptionVC: UIViewController {
         guard SecKeyIsAlgorithmSupported(privateKey, .sign, algorithm) else {
             throw cryptoError.signError
         }
-        guard let signature = SecKeyCreateSignature(privateKey, algorithm, encryptedData as CFData, &error) as Data? else {
+        guard let signedData = SecKeyCreateSignature(privateKey, algorithm, encryptedData as CFData, &error) as Data? else {
             throw error!.takeRetainedValue()
         }
-        print("signature is \(signature as CFData)")
-        print("encryptedData is \(encryptedData as CFData)")
-        if let publicKey = SecKeyCopyPublicKey(privateKey) {
-            var error: Unmanaged<CFError>?
-            guard SecKeyVerifySignature(publicKey,
-                                        algorithm,
-                                        encryptedData as CFData,
-                                        signature as CFData,
-                                        &error)
-            else {
-                                            throw error!.takeRetainedValue() as Error
-            }
-        }
-        return signature
+        return signedData
     }
+    
     
     /*
      If the keyPair exist in the key chain  - return the keyPair,
@@ -164,6 +161,7 @@ class EncryptionVC: UIViewController {
         if status == errSecSuccess {
             let privateKey = item as! SecKey
             if let publicKey = SecKeyCopyPublicKey(privateKey) {
+                updateArray.append("KeyPair Retrieved")
                 return (publicKey, privateKey)
             }
         }
@@ -183,6 +181,7 @@ class EncryptionVC: UIViewController {
                   let publicKey = SecKeyCopyPublicKey(privateKey) else {
                 throw error!.takeRetainedValue() as Error
             }
+            updateArray.append("KeyPair Generated")
             storeAndUpdateToKeychain(using: privateKey, tag)
             return (publicKey,privateKey)
         } catch {

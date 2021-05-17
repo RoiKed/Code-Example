@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		23412E332652DC8A006B82C6 /* open.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 23412E322652DC8A006B82C6 /* open.jpg */; };
 		239FDEFD264957EF0012F0D6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDEFC264957EF0012F0D6 /* AppDelegate.swift */; };
 		239FDEFF264957EF0012F0D6 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDEFE264957EF0012F0D6 /* SceneDelegate.swift */; };
 		239FDF01264957EF0012F0D6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDF00264957EF0012F0D6 /* ViewController.swift */; };
@@ -19,6 +20,7 @@
 		239FDF46264FB3C00012F0D6 /* DecryptionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDF45264FB3C00012F0D6 /* DecryptionVC.swift */; };
 		239FDF4E265114F50012F0D6 /* extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 239FDF4D265114F50012F0D6 /* extensions.swift */; };
 		239FDF5426526E390012F0D6 /* secure.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 239FDF5326526E390012F0D6 /* secure.jpg */; };
+		239FDF602652D2B30012F0D6 /* LocalAuthentication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 239FDF5F2652D2B30012F0D6 /* LocalAuthentication.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +41,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		23412E322652DC8A006B82C6 /* open.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = open.jpg; path = ../../../../Downloads/open.jpg; sourceTree = "<group>"; };
 		239FDEF9264957EF0012F0D6 /* PingID.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PingID.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		239FDEFC264957EF0012F0D6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		239FDEFE264957EF0012F0D6 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -57,6 +60,7 @@
 		239FDF45264FB3C00012F0D6 /* DecryptionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DecryptionVC.swift; sourceTree = "<group>"; };
 		239FDF4D265114F50012F0D6 /* extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extensions.swift; sourceTree = "<group>"; };
 		239FDF5326526E390012F0D6 /* secure.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = secure.jpg; sourceTree = "<group>"; };
+		239FDF5F2652D2B30012F0D6 /* LocalAuthentication.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LocalAuthentication.framework; path = System/Library/Frameworks/LocalAuthentication.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -64,6 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				239FDF602652D2B30012F0D6 /* LocalAuthentication.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,6 +96,7 @@
 				239FDF12264957F10012F0D6 /* PingIDTests */,
 				239FDF1D264957F10012F0D6 /* PingIDUITests */,
 				239FDEFA264957EF0012F0D6 /* Products */,
+				239FDF5E2652D2B20012F0D6 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -151,9 +157,18 @@
 		239FDF5226526E260012F0D6 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				23412E322652DC8A006B82C6 /* open.jpg */,
 				239FDF5326526E390012F0D6 /* secure.jpg */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		239FDF5E2652D2B20012F0D6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				239FDF5F2652D2B30012F0D6 /* LocalAuthentication.framework */,
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -260,6 +275,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				239FDF5426526E390012F0D6 /* secure.jpg in Resources */,
+				23412E332652DC8A006B82C6 /* open.jpg in Resources */,
 				239FDF09264957F10012F0D6 /* LaunchScreen.storyboard in Resources */,
 				239FDF06264957F10012F0D6 /* Assets.xcassets in Resources */,
 				239FDF04264957EF0012F0D6 /* Main.storyboard in Resources */,
