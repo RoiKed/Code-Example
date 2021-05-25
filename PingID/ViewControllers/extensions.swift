@@ -24,8 +24,8 @@ enum Query: String {
 }
 
 protocol keychainHandler {
-    func deleteFromKeychain(query: CFDictionary) throws
-    func storeAndUpdateToKeychain(using key: SecKey,_ tag: String)
+    func deleteFromKeychain(query: CFDictionary) throws -> Bool
+    func storeAndUpdateToKeychain(using key: SecKey,_ tag: String) -> String
     func isExistInKeychain(_ query: CFDictionary) -> Bool
     func getKey(for query: CFDictionary) -> SecKey?
 }
@@ -92,7 +92,6 @@ extension EncryptionVC: UNUserNotificationCenterDelegate {
     private func handleSegue(content: UNNotificationContent) {
         if let navigationController = self.navigationController {
             decryptionViewController.content = content
-            decryptionViewController.delegate = self
             decryptionViewController.shouldUseBiometrics = switchButton.isOn
             navigationController.pushViewController(decryptionViewController, animated: true)
         }
@@ -102,55 +101,6 @@ extension EncryptionVC: UNUserNotificationCenterDelegate {
         let content = response.notification.request.content
         handleSegue(content: content)
         completionHandler()
-    }
-}
-
-extension EncryptionVC: keychainHandler {
-    
-    func storeAndUpdateToKeychain(using key: SecKey,_ tag: String) {
-        let tagData = tag.data(using: .utf8)!
-        let query = [kSecClass as String: kSecClassKey,
-                                       kSecAttrApplicationTag as String: tagData,
-                                       kSecValueRef as String: key] as CFDictionary
-        let status: OSStatus
-        if isExistInKeychain(query) {
-            let attributesToUpdate = [kSecValueRef as String: key] as CFDictionary
-            status = SecItemUpdate(query, attributesToUpdate)
-            updateArray.append(" Key was Updated in Keychain")
-        } else {
-            status = SecItemAdd(query, nil)
-            updateArray.append(" Key added to Keychain ")
-        }
-        guard status == errSecSuccess else {
-            updateArray.append(" Error adding key to KeyChain ")
-            return
-        }
-    }
-    
-    func deleteFromKeychain(query: CFDictionary) throws {
-        if isExistInKeychain(query) {
-            let status = SecItemDelete(query as CFDictionary)
-            guard status == errSecSuccess || status == errSecItemNotFound else {
-                throw  cryptoError.itemNotFoundInKeychain
-            }
-            updateArray.append(" Key Deleted from Keychain")
-        }
-    }
-    
-    func getKey(for query: CFDictionary) -> SecKey? {
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query, &item)
-        if status == errSecSuccess, let item = item {
-            updateArray.append(" Key taken from Keychain")
-            return (item as! SecKey)
-        } else {
-            return nil
-        }
-    }
-    
-    func isExistInKeychain(_ query: CFDictionary) -> Bool {
-        let status = SecItemCopyMatching(query, nil)
-        return status == errSecSuccess
     }
 }
 

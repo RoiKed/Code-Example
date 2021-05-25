@@ -12,9 +12,9 @@ import LocalAuthentication
 class DecryptionVC: UIViewController {
     
     var content: UNNotificationContent?
-    var delegate: keychainHandler?
     var shouldUseBiometrics: Bool?
     var updateArray = [String]()
+    let codec = EncryptingCodec()
     
     @IBOutlet weak var field: UILabel!
     @IBOutlet weak var imageView: UIImageView!
@@ -30,18 +30,8 @@ class DecryptionVC: UIViewController {
         }
     }
     
-    func deleteKeys() {
-        if let delegate = delegate {
-            let actions = [Query.encrypt.rawValue,Query.sign.rawValue]
-            for action in actions {
-                do {
-                    let query = getQuery(for: action)
-                    try delegate.deleteFromKeychain(query: query)
-                } catch {
-                    updateArray.append("failed to delete key from Keychain")
-                }
-            }
-        }
+    func deleteKeys()  -> Bool{
+        return KeychainManager().deleteAllKeys()
     }
     
     func updateActionsLabel() {
@@ -60,7 +50,8 @@ class DecryptionVC: UIViewController {
         do {
             let didHandleMsg = try didHandleMessge()
             updateBackgroundImage(with: didHandleMsg)
-            deleteKeys()
+            let message = deleteKeys() ? " All Keys have been deleted " : " Faild to delete some of the keys "
+            updateArray.append(message)
             updateActionsLabel()
         } catch {
             updateArray.append("Decryption Faild")
@@ -77,15 +68,6 @@ class DecryptionVC: UIViewController {
         }
     }
     
-    private func getQuery(for tag: String) -> CFDictionary {
-        let query = [
-            kSecClass as String: kSecClassKey,
-            kSecReturnRef as String: true,
-            kSecAttrApplicationTag as String: tag.data(using: .utf8)!
-        ] as CFDictionary
-        return query
-    }
-    
     func didHandleMessge() throws -> Bool {
         var retVal = false
         if let content = content {
@@ -94,10 +76,10 @@ class DecryptionVC: UIViewController {
             if let signedData = signedString.toData(),
                let encryptedMessage = messageString.toData() {
                 do {
-                    if try isSignatureVerified(signedData as CFData, encryptedMessage as CFData) {
+                    if try codec.isSignatureVerified(signedData as CFData, encryptedMessage as CFData) {
                         do {
                             updateArray.append("Signature Verified")
-                            if let decryptedMessage = try decrypt(encryptedMessage as CFData) {
+                            if let decryptedMessage = try codec.decrypt(encryptedMessage as CFData) {
                                 updateArray.append("message decrypted")
                                 field.text = decryptedMessage
                                 retVal = true
@@ -114,44 +96,5 @@ class DecryptionVC: UIViewController {
         return retVal
     }
     
-    private func decrypt(_ data:CFData) throws -> String? {
-        if let delegate = delegate {
-            let algorithm: SecKeyAlgorithm = .rsaEncryptionPKCS1
-            let query = getQuery(for: Query.encrypt.rawValue)
-            if let privateKey = delegate.getKey(for: query) {
-                var error: Unmanaged<CFError>?
-                guard let decryptedData = SecKeyCreateDecryptedData(privateKey, algorithm, data, &error) as Data?
-                else {
-                    throw error!.takeRetainedValue() as Error
-                }
-                return String(decoding: decryptedData, as: UTF8.self)
-            }
-        }
-        return nil
-    }
-    
-    private func isSignatureVerified(_ signature: CFData, _ encryptedMsg: CFData) throws -> Bool {
-        var retVal = false
-        if let delegate = delegate {
-            let algorithm: SecKeyAlgorithm = .rsaSignatureMessagePKCS1v15SHA256
-            let query = getQuery(for: Query.sign.rawValue)
-            if let privateKey = delegate.getKey(for: query) {
-                guard SecKeyIsAlgorithmSupported(privateKey, .sign, algorithm) else {
-                    print("key is not suitable for an operation using a certain algorithm.")
-                    throw cryptoError.verificationError
-                }
-                if let publicKey = SecKeyCopyPublicKey(privateKey) {
-                    var error: Unmanaged<CFError>?
-                    
-                    guard SecKeyVerifySignature(publicKey, algorithm, encryptedMsg as CFData, signature as CFData, &error)
-                    else {
-                        throw error!.takeRetainedValue() as Error
-                    }
-                    retVal = (error == nil)
-                }
-            }
-        }
-        return retVal
-    }
 }
 
