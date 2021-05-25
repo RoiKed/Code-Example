@@ -93,13 +93,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		232F6347265CDBD400A413A7 /* Model */ = {
+		232F6347265CDBD400A413A7 /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				232F6348265CDCEC00A413A7 /* EncryptingCodec.swift */,
 				232F634D265CDDC900A413A7 /* KeychainManager.swift */,
 			);
-			path = Model;
+			path = Models;
 			sourceTree = "<group>";
 		};
 		239FDEF0264957EF0012F0D6 = {
@@ -128,7 +128,7 @@
 			children = (
 				239FDF5226526E260012F0D6 /* Resources */,
 				239FDF3026495A990012F0D6 /* ViewControllers */,
-				232F6347265CDBD400A413A7 /* Model */,
+				232F6347265CDBD400A413A7 /* Models */,
 				239FDEFC264957EF0012F0D6 /* AppDelegate.swift */,
 				239FDEFE264957EF0012F0D6 /* SceneDelegate.swift */,
 				239FDF00264957EF0012F0D6 /* ViewController.swift */,

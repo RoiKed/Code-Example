@@ -42,7 +42,6 @@ class KeychainManager: keychainHandler {
                 throw  cryptoError.itemNotFoundInKeychain
             }
             retVal = true
-            //updateArray.append(" Key Deleted from Keychain")
         }
         return retVal
     }
@@ -60,7 +59,6 @@ class KeychainManager: keychainHandler {
                 let query = getQuery(for: action)
                 retVal = try deleteFromKeychain(query: query) && retVal
             } catch {
-                //updateArray.append("failed to delete key from Keychain")
                 retVal = false
             }
         }
@@ -118,7 +116,7 @@ class KeychainManager: keychainHandler {
                 throw error!.takeRetainedValue() as Error
             }
             //updateArray.append("KeyPair Generated")
-            //storeAndUpdateToKeychain(using: privateKey, tag)
+            storeAndUpdateToKeychain(using: privateKey, tag)
             return (publicKey,privateKey)
         } catch {
             print(error)
